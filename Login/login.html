@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="login.css">
+  <title>Login</title>
+</head>
+<body>
+  <div class="Login-body">
+    <section class="login-container">
+      <img src="../public/logo.webp" alt="Store Logo" class="store-logo" />
+      <h1>Welcome Back</h1>
+      <form id="login-form" class="login-form">
+        <p id="error-message" class="error-message" style="display: none;"></p>
+        <label for="username">Email:</label>
+        <input
+          type="email"
+          id="username"
+          placeholder="Enter your username"
+          required
+        />
+        <label for="password">Password:</label>
+        <div class="password-input">
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            required
+          />
+          <button type="button" id="toggle-password" class="toggle-password">Show</button>
+        </div>
+        <input type="submit" id="login-button" value="Login" />
+      </form>
+      <p>
+        Don't have an account? <a href="../Signup/signup.html">Sign up here</a>
+      </p>
+    </section>
+  </div>
+
+  <script type="module" src = "login.js"></script>
+</body>
+</html>

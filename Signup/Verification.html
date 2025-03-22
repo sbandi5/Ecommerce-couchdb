@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    input {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    input:disabled {
+      background-color: #e9ecef;
+    }
+    button {
+      display: block;
+      width: 100%;
+      background-color: #ff8b07;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #ff8b07e7;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Verify Your Account</h1>
+    <input type="email" id="email-input" placeholder="Email" disabled />
+    <input type="text" id="phone-input" placeholder="Phone" disabled />
+    <button id="send-verification-btn">Send Verification Code</button>
+    <input type="text" id="otp-input" placeholder="Enter OTP" />
+    <button id="verify-otp-btn">Verify OTP</button>
+  </div>
+</body>
+<script type="module" src="Verification.js"></script>
+</html>

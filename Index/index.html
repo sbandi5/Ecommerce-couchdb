@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 id ="results"></h1>
+    <h1>Welcome to Index page</h1>
+    <button onclick="apicall()">Click me</button>
+</body>
+<script>
+    async function apicall() {
+      const x = document.getElementById("results");
+      try {
+        const response = await fetch('http://localhost:12346/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // Ensure cookies are included in the request
+        });
+        console.log('response:', response);
+        const result = await response.json();
+        console.log('Result:', result);
+        x.innerHTML = result.message; // Or JSON.stringify(data, null, 2) for JSON
+      } catch (error) {
+        x.innerHTML = "Error fetching API";
+        console.error(error);
+      }
+    }
+  </script>
+  
+</html>

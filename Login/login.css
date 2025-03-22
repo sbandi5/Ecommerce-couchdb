@@ -1,0 +1,114 @@
+ /* Reset and universal box-sizing */
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url("../public/Background.webp") no-repeat center center/cover;
+
+    margin: 0;
+}
+
+.login-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 12px;
+    padding: 20px 30px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.login-container img {
+    width: 80px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.login-container h1 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.login-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.login-container label {
+    text-align: left;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.login-form input[type="email"],
+ .login-form input[type="password"] {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.login-container input[type="submit"] {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #ff6b6b;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-container input[type="submit"]:hover {
+    background-color: #e55b5b;
+}
+
+.login-container p {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.login-container a {
+    color: #ff6b6b;
+    text-decoration: none;
+}
+
+.login-container a:hover {
+    text-decoration: underline;
+}
+
+/* Password strength styling */
+.password-strength {
+    font-size: 0.8rem;
+    text-align: left;
+    color: #555;
+}
+.toggle-password{
+    border: none;
+    color : green;
+}
+
+.password-input{
+    display: flex;
+    flex-direction: column;
+}
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .login-container {
+        padding: 15px 20px;
+    }
+
+    .login-container h1 {
+        font-size: 1.5rem;
+    }
+}
