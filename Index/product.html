@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Page</title>
+  <link rel="stylesheet" href="header.css">
+  <link rel="stylesheet" href="product.css">
+</head>
+<body>
+  <div class="header-class">
+    <div class="header-container">
+      <img class="header-LogoImg" src="../public/logo.webp" alt="Logo" />
+      <form id="search-form">
+        <input type="text" name="search" placeholder="Search for an item" />
+        <button type="submit">Search</button>
+      </form>
+      <img src="../public/shopping-bag.png" alt="Cart" id="cart-icon" />
+      <img src="../public/user.png" alt="Account" id="account-icon" />
+      <div class="dropdown-menu" id="account-dropdown">
+        <ul>
+          <li id="user-details">User Details</li>
+          <li id = "ordered-items">Ordered Items</li>
+          <li id = "Manage-items">Manage Items</li>
+          <li id="favourites">Favourites</li>
+          <li id="logout">Logout</li>
+        </ul>
+      </div>
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+    </div>
+    <nav class="header-nav" id="header-nav" style="display: none;">
+      <ul>
+        <li id = "Home">Home</li>
+        <li id ="Casual">Casual Wear</li>
+        <li id = "Running">Running Shoes</li>
+        <li id = "Boots">Boots</li>
+        <li id = "Sandals">Sandals</li>
+        <li id = "Formal">Formal Wear</li>
+      </ul>
+    </nav>
+  </div>
+  <div class="container">
+    <!-- Product Section -->
+    <div class="product-page">
+      <!-- Left Section: Image Carousel -->
+      <div class="product-gallery">
+        <div class="main-image">
+          <img id="main-product-img" src="" alt="Product Image">
+        </div>
+        <div class="thumbnail-gallery" id="thumbnail-gallery">
+          <!-- Thumbnails will be dynamically loaded -->
+        </div>
+      </div>
+
+      <!-- Right Section: Product Details -->
+      <div class="product-info">
+        <h1 id="product-name">Product Name</h1>
+        <div class="product-rating">
+          ⭐⭐⭐⭐⭐ <span id="product-reviews">(0 Reviews)</span>
+        </div>
+        <p id="product-price" class="price">$0.00</p>
+        <p id ="stock-header" class = "stock-header">In Stock: <p id = "product-stock" class = "stock">0</p></p>
+        <p class="offer" id="product-offer">No offers available.</p>
+        <p id="product-description">Product description goes here. It includes features, highlights, and detailed specifications.</p>
+        <div class="product-specs" id="product-specs">
+          <!-- Specifications will be dynamically loaded -->
+        </div>
+
+        <!-- Actions -->
+        <div class="product-actions">
+          <button id="AddToCart" class="AddToCart">Add to Cart</button>
+        </div>
+        <p class="delivery-info">Estimated Delivery: <span id="delivery-date">N/A</span></p>
+      </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="product-reviews-section">
+      <h2>Customer Reviews</h2>
+      <div id="reviews-container">
+        <!-- Reviews will be dynamically loaded -->
+        <p>No reviews yet. Be the first to review!</p>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <script type="module" src = "header.js"></script>
+  <script type="module" src="product.js"></script>
+</body>
+</html>

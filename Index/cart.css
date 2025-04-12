@@ -1,0 +1,166 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 30px;
+    padding-top: 80px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.cart-item-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-right: 20px;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-info h3 {
+    margin: 0;
+    color: #333;
+}
+
+.item-info p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.quantity-controls button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.quantity-controls button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.quantity-controls button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.quantity-controls input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 0 5px;
+    font-size: 16px;
+}
+
+.actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.remove-from-cart {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.remove-from-cart:hover {
+    background-color: #b02a37;
+}
+
+.container {
+    display: flex;
+    justify-content: flex-end; /* Align items to the right */
+    
+    
+}
+
+.checkout_button {
+    background-color: #28a745; /* Green background */
+    color: white; /* White text */
+    font-size: 18px; /* Larger font size */
+    font-weight: bold; /* Bold text */
+    padding: 10px 20px; /* Add some padding */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth color transition */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+}
+
+.checkout_button:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+.checkout_button:active {
+    background-color: #1e7e34; /* Even darker green when active */
+    box-shadow: none; /* Remove shadow on click */
+}
+
+.shipping-details {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.shipping-details h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.shipping-details p {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #555;
+}
+
+.edit-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-button:hover {
+    background-color: #0056b3;
+}

@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="header.css">
-  <link rel="stylesheet" href = "index.css">
-  
-  <title>Index</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecommerce</title>
+    <link rel="stylesheet" href="header.css">
+    <link rel="stylesheet" href="SearchResults.css">
 </head>
-
 <body>
   <div class="header-class">
     <div class="header-container">
@@ -31,24 +28,22 @@
       </div>
       <button class="menu-toggle" id="menu-toggle">☰</button>
     </div>
-    <nav class="header-nav" id="header-nav">
-      <ul id="navigation-menu">
-        <li id="Home">Home</li>
-        <li id="Casual">Casual Wear</li>
-        <li id="Running">Running Shoes</li>
-        <li id="Boots">Boots</li>
-        <li id="Sandals">Sandals</li>
-        <li id="Formal">Formal Wear</li>
+    <nav class="header-nav" id="header-nav" style="display: none;">
+      <ul>
+        <li id = "Home">Home</li>
+        <li id ="Casual">Casual Wear</li>
+        <li id = "Running">Running Shoes</li>
+        <li id = "Boots">Boots</li>
+        <li id = "Sandals">Sandals</li>
+        <li id = "Formal">Formal Wear</li>
       </ul>
     </nav>
   </div>
-  <!-- Hero container -->
-   <div class="hero-container">
-    <h1>All You Need <br> The Best Collection You can Imagine With Great Prices</h1>
-   </div>
-   <div id= 'items-container' class="items-container"></div>
-
+  <div class="search-results">
+    <h2>Search Results</h2>
+    <div id= 'items-container' class="items-container"></div>
+  </div>
 </body>
 <script type="module" src="header.js"></script>
-<script type="module" src="items.js"></script>
+<script type="module" src="./SearchResults.js"></script>
 </html>

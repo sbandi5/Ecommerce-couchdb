@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <link rel="stylesheet" href="./header.css">
+    <link rel="stylesheet" href="./orderitems.css">
+</head>
+<body>
+    <div class="header-class">
+        <div class="header-container">
+          <img class="header-LogoImg" src="../public/logo.webp" alt="Logo" />
+          <form id="search-form">
+            <input type="text" name="search" placeholder="Search for an item" />
+            <button type="submit">Search</button>
+          </form>
+          <img src="../public/shopping-bag.png" alt="Cart" id="cart-icon" />
+          <img src="../public/user.png" alt="Account" id="account-icon" />
+          <div class="dropdown-menu" id="account-dropdown">
+            <ul>
+              <li id="user-details">User Details</li>
+              <li id = "ordered-items">Ordered Items</li>
+              <li id = "Manage-items">Manage Items</li>
+              <li id="favourites">Favourites</li>
+              <li id="logout">Logout</li>
+            </ul>
+          </div>
+          <button class="menu-toggle" id="menu-toggle">☰</button>
+        </div>
+        <nav class="header-nav" id="header-nav" style="display: none;">
+          <ul>
+            <li id = "Home">Home</li>
+            <li id ="Casual">Casual Wear</li>
+            <li id = "Running">Running Shoes</li>
+            <li id = "Boots">Boots</li>
+            <li id = "Sandals">Sandals</li>
+            <li id = "Formal">Formal Wear</li>
+          </ul>
+        </nav>
+      </div>
+    <header>
+        <h1>My Orders</h1>
+    </header>
+    <main>
+        <div id="orders-container">
+            <p>Loading your orders...</p>
+        </div>
+    </main>
+    <script type="module" src="./header.js"></script>
+    <script src="./orderitems.js" type="module"></script>
+</body>
+</html>

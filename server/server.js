@@ -48,12 +48,15 @@ const app = express();
 const server = http.createServer( app);
 const io = new Server(server,{
   cors: {
-    origin: ["https://www.saimanikiranbandi.com","http://localhost:5500", "http://127.0.0.1:5500"], // Add allowed origins
+    origin: ["https://www.saimanikiranbandi.com","http://localhost:5579", "http://127.0.0.1:5579"], // Add allowed origins
     methods: ["GET", "POST"], // Allowed methods
     credentials: true, // Allow cookies/credentials if needed
   },
-}); // Initialize Socket.IO
-
+}); 
+// Initialize Socket.IO
+// Import the Socket.IO module
+const initializeSocket = require('./socket');
+const stockUpdate =initializeSocket(io, db); // Pass the Socket.IO instance to the module
 // Carrier Gateways for Email-to-SMS
 const carrierGateways = [
   '@txt.att.net', // AT&T
@@ -416,7 +419,22 @@ app.get('/api/session', (req, res) => {
   }
 });
 
-
+// ----------------------------------------------------------------------------------------------------------
+// Route: Fetch items and adding items
+// get items from the database
+app.get('/api/items', async (req, res) => {
+  try {
+    const results = await req.db.getItemsStock(); // Fetch items from the database
+    console.log(results);
+    res.json(results); // Send items as JSON response
+  } catch (err) {
+    console.error('Error fetching items:', err);
+    res.status(500).json({
+      success: false,
+      error: 'An error occurred while fetching items',
+    });
+  }
+});
 
 //-------------------------------------------------------------------------------------
 //user section
@@ -433,7 +451,368 @@ app.get('/api/user', async (req, res) => {
 });
 
 
+app.post('/api/updateuser', async (req, res) => {
+  try {
+    // Ensure the session exists
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+    }
 
+    const { password, ...userDetails } = req.body; // Destructure password separately
+
+    // Hash the password if it's included in the request
+    if (password) {
+      userDetails.password = await bcrypt.hash(password, 10);
+    }
+
+    // Construct the User object
+    const user = new User(
+      userDetails.fname,
+      userDetails.lname,
+      userDetails.email,
+      userDetails.username,
+      userDetails.password, // May be undefined if no password update
+      userDetails.aptAddress,
+      userDetails.street,
+      userDetails.city,
+      userDetails.state,
+      userDetails.areaCode,
+      userDetails.phone
+    );
+    // Update user details in the database
+    const result = await req.db.updateUser(user, req.session.user.username);
+
+    // Respond with success message
+    res.status(200).json({
+      message: 'Successfully updated user details',
+      result,
+    });
+  } catch (err) {
+    console.error('Error updating user details:', err);
+
+    // Respond with a sanitized error message
+    res.status(500).json({
+      message: 'Error updating user details',
+      error: err.message || 'Internal server error',
+    });
+  }
+});
+
+
+
+// Fetch all items
+
+app.get('/api/get-add-items', async(req, res) => {
+  //res.json(items);
+  const items = await req.db.getItemsStockByUsername(req.session.user.username);
+  res.json({items,message:'Fetched Items'});
+});
+
+
+//
+// Create a new item
+app.post('/api/add-items', upload.array('itemPhotos', 10), async (req, res) => {
+  try {
+      const { itemName, itemDescription, itemPrice, itemStock, itemType } = req.body;
+      const Files = req.files;
+      const filenames= [];
+      for(let i = 0; i < Files.length; i++){
+        filenames[i] = 'Images/'+Files[i].filename;
+        console.log("The filenames is: ", filenames[i]);
+      }
+      const user = req.session.user;
+      console.log('The user details got in the add items: ', user);
+      // Create the new item object
+      const newItem = {
+          Name: itemName,
+          Description:itemDescription,
+          Price: parseFloat(itemPrice),
+          Stock: parseInt(itemStock),
+          Type : itemType,
+          itemPhotos: filenames,
+	        UserName: user.username
+      };
+      console.log('The UserName is ', newItem.UserName);
+      try{
+        const result = await req.db.insertItem(newItem);
+        console.log(result);
+      }catch(err){
+        console.log(err);
+      }
+      // Broadcast the updated stock to all connected clients
+      await stockUpdate.fetchAndBroadcastStock();
+      res.status(201).json({ message: 'Item created successfully', item: newItem });
+  } catch (err) {
+      console.error('Error creating item:', err);
+      res.status(500).json({ message: 'Failed to create item', error: err.message });
+  }
+});
+
+app.post('/api/add-to-cart', async (req, res) => {
+  const user = req.session.user;
+  const item = req.body.item;
+
+  if (!user) {
+    return res.status(401).json({ message: 'User not authenticated', error: 'Unauthorized' });
+  }
+
+  if (!item || !item.ItemID) {
+    return res.status(400).json({ message: 'Invalid item data', error: 'Bad Request' });
+  }
+
+  try {
+    const itemExists = await req.db.checkIfItemInCart(user.id, item.ItemID);
+
+    if (itemExists) {
+      return res.status(409).json({ message: 'Item already in cart', error: 'Conflict' });
+    }
+    const checkQuantity = await req.db.checkQuantity(item.ItemID);
+    if(checkQuantity){
+      await req.db.addItemToCart(user.id, item.ItemID);
+      return res.json({ message: 'Item added to cart successfully', error: null });
+    }else{
+      return res.status(404).json({ message: 'Item out of stock' });
+    }
+  } catch (err) {
+    console.error('Error adding item to cart:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
+  }
+});
+//Route: retrive cart items from database
+app.get('/api/cart', async (req, res) => {
+  const user = req.session.user;
+
+  if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+      const cartItems = await req.db.getCartItems(user.id);
+      res.json({ message: 'Cart retrieved successfully', cartItems , user});
+  } catch (err) {
+      console.error('Error retrieving cart items:', err);
+      res.status(500).json({ message: 'Failed to retrieve cart', error: err });
+  }
+});
+
+app.delete('/api/remove-from-cart', async (req, res) => {
+  const user = req.session.user;
+  const { itemId } = req.body;
+
+  if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+      await req.db.removeItemFromCart(user.id, itemId);
+      res.json({ message: 'Item removed from cart' });
+  } catch (err) {
+      console.error('Error removing item from cart:', err);
+      res.status(500).json({ message: 'Failed to remove item from cart', error: err });
+  }
+});
+
+app.put('/api/update-cart', async (req, res) => {
+  const { itemId, quantity } = req.body;
+  const user = req.session.user;
+
+  if (!user) {
+      return res.status(401).json({ message: 'Unauthorized user' });
+  }
+
+  if (!itemId || !quantity) {
+      return res.status(400).json({ message: 'Item ID and quantity are required' });
+  }
+
+  try {
+      console.log('Updating cart:', { userId: user.id, itemId, quantity });
+
+      // Check if cart exists
+      const cart = await req.db.getActiveCart(user.id);
+      if (!cart) {
+          console.error('No active cart found for user:', user.id);
+          return res.status(404).json({ message: 'No active cart found' });
+      }
+
+      // Get item stock
+      const stock = await req.db.getItemStock(itemId);
+      if (!stock) {
+          console.error('Item not found in inventory:', itemId);
+          return res.status(404).json({ message: 'Item not found in inventory' });
+      }
+
+      if (quantity > stock) {
+          console.error('Quantity exceeds stock:', { itemId, quantity, stock });
+          return res.status(400).json({ message: 'Requested quantity exceeds stock' });
+      }
+
+      if (quantity > 5) {
+          console.error('Quantity exceeds limit of 5:', { itemId, quantity });
+          return res.status(400).json({ message: 'You can only add up to 5 of this item per order' });
+      }
+
+      // Update quantity in cart
+      await req.db.updateCartQuantity(cart.CartID, itemId, quantity);
+      console.log('Quantity updated successfully:', { cartId: cart.CartID, itemId, quantity });
+      res.json({ message: 'Quantity updated successfully' });
+
+  } catch (err) {
+      console.error('Error updating cart quantity:', err);
+      res.status(500).json({ message: 'Failed to update cart quantity', error: err.message });
+  }
+});
+
+// Mark item as sold (example)
+// Mark item as sold
+app.put('/items/:id/sell', async (req, res) => {
+  const itemId = parseInt(req.params.id);
+  const { buyer } = req.body;
+
+  // Find the item in the database or in-memory array
+  const item = items.find((i) => i.id === itemId);
+
+  if (item) {
+      try {
+          // Update the item in the database
+          await req.db.query('UPDATE items SET status = ?, buyer = ? WHERE id = ?', ['sold', buyer, itemId]);
+
+          // Update the in-memory `items` array
+          item.status = 'sold';
+          item.buyer = buyer;
+
+          res.json({ message: 'Item marked as sold', item });
+      } catch (err) {
+          console.error('Error updating item status:', err);
+          res.status(500).json({ message: 'Failed to mark item as sold', error: err.message });
+      }
+  } else {
+      res.status(404).json({ message: 'Item not found' });
+  }
+});
+
+app.post('/payment', async (req, res) => {
+    try {
+        const { cartItems } = req.body;
+
+        if (!Array.isArray(cartItems) || cartItems.length === 0) {
+            return res.status(400).json({ error: "Cart items are required." });
+        }
+
+        // Convert cart items to Stripe line items
+        const lineItems = cartItems.map(item => ({
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: item.Name,
+                    description: item.Description || 'No description available',
+                },
+                unit_amount: Math.round(item.Price * 100), // Stripe expects cents
+                tax_behavior: 'exclusive', // Tax is added on top
+            },
+            quantity: item.Quantity,
+            tax_rates: ['txr_1QUXDhD5Kjv0FeJlmcXeQ42U'], // Ensure this tax rate matches your Stripe settings
+        }));
+
+        console.log("Line items for Stripe Checkout:", lineItems);
+
+        // Create a Stripe Checkout Session
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            mode: 'payment',
+            success_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/cart.html',
+	    //success_url : 'http://localhost:5500/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            //cancel_url: 'http://localhost:5500/Index/cart.html',
+        });
+
+        res.json({ sessionId: session.id });
+    } catch (error) {
+        console.error("Error creating checkout session:", error);
+        res.status(500).json({ error: "Failed to create checkout session." });
+    }
+});
+
+
+app.post('/finalize-order', async (req, res) => {
+  try {
+      const { sessionId, userId } = req.body;
+
+      // Verify Stripe session
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      if (!session || session.payment_status !== 'paid') {
+          return res.status(400).json({ error: 'Payment not completed.' });
+      }
+
+      // Fetch cart items
+      const cartItems = await req.db.getCartItems(userId);
+      if (!Array.isArray(cartItems) || cartItems.length === 0) {
+          return res.status(400).json({ error: 'No items in cart.' });
+      }
+
+      // Calculate total amount
+      const totalAmount = cartItems.reduce((sum, item) => sum + item.Price * item.Quantity, 0);
+
+      // Insert new order with status 'Pending'
+      const orderResult = await req.db.insertOrder(userId, totalAmount);
+      const orderId = orderResult.insertId; // Access the `insertId` property directly
+
+
+      // Insert order items
+      await req.db.insertOrderItems(orderId, cartItems);
+
+      // Reduce stock in items table
+      await req.db.reduceStock(cartItems);
+
+      await req.db.markCartAsCheckedOut(userId);
+      // Broadcast the updated stock to all connected clients
+      await stockUpdate.fetchAndBroadcastStock();
+      res.json({ success: true, orderId });
+  } catch (error) {
+      console.error('Error finalizing order:', error);
+      res.status(500).json({ error: 'Failed to finalize order.' });
+  }
+});
+
+app.get('/api/ordered-items', async (req, res) => {
+  const user = req.session.user;
+
+  if (!user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized user' });
+  }
+
+  try {
+      const orderedItems = await req.db.getOrderedItemsByUserId(user.id);
+
+      if (orderedItems.length === 0) {
+          return res.json({ success: true, orderedItems: [] }); // No items ordered
+      }
+
+      res.json({ success: true, orderedItems });
+  } catch (error) {
+      console.error('Error fetching ordered items:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch ordered items', error: error.message });
+  }
+});
+
+app.get('/api/user-details', async (req, res) => {
+  try {
+      const user = req.session.user;
+      if (!user) {
+          return res.status(401).json({ success: false, message: 'Unauthorized user' });
+      }
+
+      const userDetails = await req.db.getuserDetailsbyUsername(user.username);
+      if (!userDetails.length) {
+          return res.status(404).json({ success: false, message: 'User details not found' });
+      }
+
+      res.json({ success: true, user: userDetails[0] });
+  } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch user details' });
+  }
+});
 
 
 

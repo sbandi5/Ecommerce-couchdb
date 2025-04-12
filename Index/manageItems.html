@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Items</title>
+    <link rel="stylesheet" href="./header.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            margin-top: 80px; 
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input, textarea, button.AddItem, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button.AddItem {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button.AddItem :hover {
+            background-color: #0056b3;
+        }
+        .item-list {
+            margin-top: 20px;
+        }
+        .item-card {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .item-card.sold {
+            border-color: #28a745;
+        }
+        .item-card h3 {
+            margin-top: 0;
+        }
+        .buyer-details {
+            margin-top: 10px;
+            background-color: #e9ffe9;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #createItemForm {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="header-class">
+        <div class="header-container">
+          <img class="header-LogoImg" src="../public/logo.webp" alt="Logo" />
+          <form id="search-form">
+            <input type="text" name="search" placeholder="Search for an item" />
+            <button type="submit">Search</button>
+          </form>
+          <img src="../public/shopping-bag.png" alt="Cart" id="cart-icon" />
+          <img src="../public/user.png" alt="Account" id="account-icon" />
+          <div class="dropdown-menu" id="account-dropdown">
+            <ul>
+              <li id="user-details">User Details</li>
+              <li id = "ordered-items">Ordered Items</li>
+              <li id = "Manage-items">Manage Items</li>
+              <li id="favourites">Favourites</li>
+              <li id="logout">Logout</li>
+            </ul>
+          </div>
+          <button class="menu-toggle" id="menu-toggle">☰</button>
+        </div>
+        <nav class="header-nav" id="header-nav" style="display: none;">
+          <ul>
+            <li id = "Home">Home</li>
+            <li id ="Casual">Casual Wear</li>
+            <li id = "Running">Running Shoes</li>
+            <li id = "Boots">Boots</li>
+            <li id = "Sandals">Sandals</li>
+            <li id = "Formal">Formal Wear</li>
+          </ul>
+        </nav>
+      </div>
+    <div class="container">
+        <h1>Manage Items</h1>
+        <button class="AddItem" onclick="toggleForm()">+ Add an Item</button>
+        <form id="createItemForm">
+            <h2>Create New Item</h2>
+            <div class="form-group">
+                <label for="itemName">Item Name</label>
+                <input type="text" id="itemName" name="itemName" placeholder="Enter item name" required>
+            </div>
+            <div class="form-group">
+                <label for="itemDescription">Item Description</label>
+                <textarea id="itemDescription" name="itemDescription" placeholder="Enter item description" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="itemPrice">Price</label>
+                <input type="number" id="itemPrice" name="itemPrice" placeholder="Enter price" required>
+            </div>
+            <div class="form-group">
+                <label for="itemPictures">Picture</label>
+                <input type="file" id="itemPhotos" name="itemPhotos" multiple placeholder="Upload pictures">
+            </div>
+            <div class="form-group">
+                <label for="itemType">Type</label>
+                <select id="itemType" name="itemType">
+                    <option value="Casual">Casual</option>
+                    <option value="Running">Running</option>
+                    <option value="Sandals">Sandals</option>
+                    <option value="Boots">Boots</option>
+                    <option value="Formals">Formals</option>
+                  </select>
+            </div>
+            <div class="form-group">
+                <label for="itemStock">Quantity</label>
+                <input type="number" id="itemStock" name="itemStock" placeholder="Enter the number of Quantity" required>
+            </div>
+            <button class = "AddItem" type="submit">Add Item</button>
+        </form>
+
+        <div class="item-list" id="itemList">
+            <h2>Your Items</h2>
+        </div>
+    </div>
+    <script>
+        function toggleForm() {
+            const form = document.getElementById('createItemForm');
+            form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+        }
+
+    </script>
+    <script type="module" src="header.js"></script>
+    <script type="module" src ="manageItems.js">
+        
+    </script>
+</body>
+</html>
