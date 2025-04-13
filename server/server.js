@@ -49,7 +49,7 @@ const server = https.createServer(certs, app);
 const io = new Server(server,{
   cors: {
     origin: ["https://www.saimanikiranbandi.com","http://localhost:5579", "http://127.0.0.1:5579"], // Add allowed origins
-    // methods: ["GET", "POST"], // Allowed methods
+    methods: ["GET", "POST"], // Allowed methods
     credentials: true, // Allow cookies/credentials if needed
   },
 }); 
