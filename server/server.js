@@ -49,7 +49,7 @@ const server = https.createServer(certs, app);
 const io = new Server(server,{
   cors: {
     origin: ["https://www.saimanikiranbandi.com","http://localhost:5579", "http://127.0.0.1:5579"], // Add allowed origins
-    methods: ["GET", "POST"], // Allowed methods
+    // methods: ["GET", "POST"], // Allowed methods
     credentials: true, // Allow cookies/credentials if needed
   },
 }); 
@@ -72,7 +72,7 @@ const sessionStore = new CouchDBStore({
   port: 5984,
   username: process.env.Db_user, // Replace with your CouchDB username
   password: process.env.Db_password, // Replace with your CouchDB password
-  ssl: false // true if using CouchDB over HTTPS
+  ssl: true // true if using CouchDB over HTTPS
 });
 
 
