@@ -39,13 +39,13 @@ const upload = multer({ storage });
 require('dotenv').config();
 // Initialize app and database
 
-const certs = {
-   key : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com_key.txt')),
-   cert : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com.crt'))
-}
+// const certs = {
+//    key : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com_key.txt')),
+//    cert : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com.crt'))
+// }
 const db = Database.getInstance(); // Your custom Database module
 const app = express();
-const server = https.createServer(certs, app);
+const server = http.createServer( app);
 const io = new Server(server,{
   cors: {
     origin: ["https://www.saimanikiranbandi.com","http://localhost:5579", "http://127.0.0.1:5579"], // Add allowed origins
@@ -68,11 +68,11 @@ const carrierGateways = [
 
 const sessionStore = new CouchDBStore({
   name: 'express-sessions', // CouchDB database name
-  host: "localhost",
+  host: "3.21.248.95",
   port: 5984,
-  username: process.env.Db_user, // Replace with your CouchDB username
-  password: process.env.Db_password, // Replace with your CouchDB password
-  ssl: true // true if using CouchDB over HTTPS
+  username: process.env.Db_user, 
+  password: process.env.Db_password, 
+  ssl: false // true if using CouchDB over HTTPS
 });
 
 
@@ -100,7 +100,7 @@ app.use(session({
   saveUninitialized: false,
   store: sessionStore,
   cookie: {
-    secure: true,         // true if using HTTPS
+    secure: false,         // true if using HTTPS
     httpOnly: true,
     maxAge: 60 * 60 * 1000 // 1 hour
   }
@@ -378,6 +378,7 @@ app.post('/api/login', async (req, res) => {
   try {
     console.log('The body of request:', req.body);
     const results = await req.db.getuserDetails(req.body.email);
+    console.log('The results are:', results, ' and i am after the database query');
 
     if (!results || results.length === 0) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -443,6 +444,7 @@ app.get('/api/user', async (req, res) => {
   const user = req.session.user;
   try{
     const userDetails = await req.db.getuserDetailsbyUsername(user.username);
+    console.log('The user details are:', userDetails);
     res.json({ userDetails, message: "User details updated successfully" });
   }catch(err){
     console.error('Error fetching user details:', err);
@@ -459,6 +461,7 @@ app.post('/api/updateuser', async (req, res) => {
     }
 
     const { password, ...userDetails } = req.body; // Destructure password separately
+    console.log('The user details are:', req.body);
 
     // Hash the password if it's included in the request
     if (password) {
@@ -480,7 +483,7 @@ app.post('/api/updateuser', async (req, res) => {
       userDetails.phone
     );
     // Update user details in the database
-    const result = await req.db.updateUser(user, req.session.user.username);
+    const result = await req.db.updateUser(user, userDetails._id);
 
     // Respond with success message
     res.status(200).json({
@@ -796,13 +799,16 @@ app.get('/api/ordered-items', async (req, res) => {
 });
 
 app.get('/api/user-details', async (req, res) => {
+  console.log("i'm in the user-details");
   try {
       const user = req.session.user;
+      console.log('The user details:', user);
       if (!user) {
           return res.status(401).json({ success: false, message: 'Unauthorized user' });
       }
 
       const userDetails = await req.db.getuserDetailsbyUsername(user.username);
+      console.log('The user details from the database:', userDetails);
       if (!userDetails.length) {
           return res.status(404).json({ success: false, message: 'User details not found' });
       }

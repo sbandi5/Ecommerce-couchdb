@@ -63,12 +63,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Function to handle product redirection
 function redirectToProductPage(item) {
-  // Store the item in localStorage
+  item.ItemID = item._id; // Add this line
   localStorage.setItem("selectedProduct", JSON.stringify(item));
-
-  // Redirect to product.html
   window.location.href = "product.html";
 }
+
 
 // Function to add item to cart
 async function addToCart(item) {

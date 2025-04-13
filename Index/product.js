@@ -22,6 +22,8 @@ function setupSocket() {
 
     // Listen for stock updates
     socket.on("stock-update", (itemsStock) => {
+      console.log("Stock updated:", itemsStock);
+      console.log("Current product ID:", currentProductId);
       const productStock = itemsStock[currentProductId];
       if (productStock) {
         updateStockUI(productStock.stock); // Update the UI dynamically

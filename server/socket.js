@@ -7,11 +7,12 @@ module.exports = function initializeSocket(io, db) {
         try {
             const results = await db.getItemsStock(); // Fetch fresh stock
             results.forEach(item => {
-                itemsStock[item.ItemID] = {
+                itemsStock[item._id] = {
                     name: item.Name,
                     stock: item.Stock,
                 };
             });
+            
             io.emit('stock-update', itemsStock); // Broadcast to all clients
             console.log("Stock broadcasted:", itemsStock);
         } catch (err) {
@@ -20,7 +21,14 @@ module.exports = function initializeSocket(io, db) {
     }
 
     // Load initial stock
-    fetchAndBroadcastStock();
+    (async () => {
+        try {
+            await fetchAndBroadcastStock();
+        } catch(err) {
+            console.error("Error loading initial stock:", err);
+        }
+    })();
+    
 
     io.on('connection', (socket) => {
         console.log(`Client connected: ${socket.id}`);
@@ -42,7 +50,7 @@ module.exports = function initializeSocket(io, db) {
                     }
 
                     // Broadcast updated stock
-                    fetchAndBroadcastStock();
+                    await fetchAndBroadcastStock();
                 } else {
                     socket.emit('stock-error', { message: `Stock for product ${productId} is unavailable.` });
                 }

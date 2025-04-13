@@ -58,31 +58,33 @@ class Database {
     }
 
     // Update user
-    async updateUser(user, email) {
-        const existing = await ecommerceDb.get(email).catch(() => {
+    async updateUser(user, _id) {
+        const existing = await ecommerceDb.get(_id).catch(() => {
             throw new Error('User not found');
         });
 
-        const updatedUser = {
-            ...existing,
-            fname: user.Fname,
-            lname: user.Lname,
-            email: user.Email,
-            username: user.Username || existing.username,
-            password: user.Password,
-            phone: user.Phone,
-            address: {
-                aptAddress: user.AptAddress,
-                street: user.Street,
-                city: user.City,
-                state: user.State,
-                areaCode: user.AreaCode
-            },
-            updated_at: new Date().toISOString()
+        // Update only the necessary fields
+        existing.fname = user.Fname || existing.fname;
+        existing.lname = user.Lname || existing.lname;
+        existing.email = user.Email || existing.email;
+        existing.username = user.Username || existing.username;
+        existing.password = user.Password || existing.password;
+        existing.phone = user.Phone || existing.phone;
+
+        existing.address = {
+            aptAddress: user.AptAddress || existing.address?.aptAddress,
+            street: user.Street || existing.address?.street,
+            city: user.City || existing.address?.city,
+            state: user.State || existing.address?.state,
+            areaCode: user.AreaCode || existing.address?.areaCode,
         };
 
-        return ecommerceDb.insert(updatedUser);
+        existing.updated_at = new Date().toISOString();
+
+        // Pass the full updated doc with _id and _rev
+        return ecommerceDb.insert(existing);
     }
+
 
     // Get user by username
     async getuserDetailsbyUsername(username) {
@@ -92,7 +94,7 @@ class Database {
                 username: username
             },
             fields: [
-                "fname", "lname", "email", "username", "phone",
+                "_id","fname", "lname", "email", "username", "phone",
                 "address.aptAddress", "address.street", "address.city", "address.state", "address.areaCode"
             ],
             limit: 1
@@ -135,7 +137,7 @@ class Database {
             },
             limit: 1
         });
-    
+
         let cart;
         if (result.docs.length > 0) {
             cart = result.docs[0];
@@ -151,7 +153,7 @@ class Database {
                 updated_at: new Date().toISOString()
             };
         }
-    
+
         // Check if item already in cart
         const existing = cart.items.find(i => i.itemId === itemId);
         if (existing) {
@@ -165,7 +167,7 @@ class Database {
                 price: item.Price
             });
         }
-    
+
         cart.updated_at = new Date().toISOString();
         return ecommerceDb.insert(cart);
     }
@@ -179,12 +181,12 @@ class Database {
             },
             limit: 1
         });
-    
+
         if (result.docs.length === 0) return [];
-    
+
         const cart = result.docs[0];
         const detailedItems = [];
-    
+
         for (const item of cart.items) {
             const product = await ecommerceDb.get(item.itemId);
             const images = await ecommerceDb.find({
@@ -193,7 +195,7 @@ class Database {
                     productName: product.Name
                 }
             });
-    
+
             detailedItems.push({
                 ...item,
                 name: product.Name,
@@ -201,10 +203,10 @@ class Database {
                 imageURLs: images.docs.map(img => img.ImageURL)
             });
         }
-    
+
         return detailedItems;
     }
-    
+
     async removeItemFromCart(userId, itemId) {
         const result = await ecommerceDb.find({
             selector: {
@@ -214,17 +216,17 @@ class Database {
             },
             limit: 1
         });
-    
+
         if (result.docs.length === 0) {
             throw new Error('Active cart not found');
         }
-    
+
         const cart = result.docs[0];
         cart.items = cart.items.filter(i => i.itemId !== itemId);
         cart.updated_at = new Date().toISOString();
         return ecommerceDb.insert(cart);
     }
-    
+
     async markCartAsCheckedOut(userId) {
         const result = await ecommerceDb.find({
             selector: {
@@ -234,9 +236,9 @@ class Database {
             },
             limit: 1
         });
-    
+
         if (result.docs.length === 0) return null;
-    
+
         const cart = result.docs[0];
         cart.status = 'checkout';
         cart.updated_at = new Date().toISOString();
@@ -251,7 +253,7 @@ class Database {
             ImageURL: url,
             created_at: new Date().toISOString()
         }));
-    
+
         return ecommerceDb.bulk({ docs: bulkDocs });
     }
 
@@ -265,7 +267,7 @@ class Database {
             status: 'Pending',
             created_at: new Date().toISOString()
         };
-    
+
         return ecommerceDb.insert(orderDoc);
     }
 
@@ -277,17 +279,17 @@ class Database {
             },
             sort: [{ created_at: 'desc' }]
         });
-    
+
         const detailedOrders = [];
         for (const order of result.docs) {
             const itemsWithDetails = [];
-    
+
             for (const item of order.items) {
                 const product = await ecommerceDb.get(item.itemId);
                 const images = await ecommerceDb.find({
                     selector: { type: 'image', productName: product.Name }
                 });
-    
+
                 itemsWithDetails.push({
                     ...item,
                     name: product.Name,
@@ -297,7 +299,7 @@ class Database {
                     imageURLs: images.docs.map(i => i.ImageURL)
                 });
             }
-    
+
             detailedOrders.push({
                 orderId: order._id,
                 created_at: order.created_at,
@@ -305,14 +307,14 @@ class Database {
                 items: itemsWithDetails
             });
         }
-    
+
         return detailedOrders;
     }
-    
+
     async insertItem(item) {
         try {
             const itemId = uuidv4();
-    
+
             const itemDoc = {
                 _id: itemId,
                 type: 'item',
@@ -326,9 +328,9 @@ class Database {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
-    
+
             await ecommerceDb.insert(itemDoc);
-    
+
             // Insert associated images (if any)
             if (item.itemPhotos && item.itemPhotos.length > 0) {
                 const imageDocs = item.itemPhotos.map(photo => ({
@@ -339,11 +341,11 @@ class Database {
                     ImageURL: photo,
                     created_at: new Date().toISOString()
                 }));
-    
+
                 await ecommerceDb.bulk({ docs: imageDocs });
                 console.log('Images inserted for item');
             }
-    
+
             return { message: "Item inserted successfully", itemId };
         } catch (err) {
             console.error('Error inserting item:', err);
@@ -360,9 +362,9 @@ class Database {
             },
             limit: 1
         });
-    
+
         if (result.docs.length === 0) return false;
-    
+
         const cart = result.docs[0];
         return cart.items.some(i => i.itemId === itemId);
     }
@@ -371,12 +373,12 @@ class Database {
         const cart = await ecommerceDb.get(cartId).catch(() => {
             throw new Error('Cart not found');
         });
-    
+
         const target = cart.items.find(i => i.itemId === itemId);
         if (!target) {
             throw new Error('Item not found in cart');
         }
-    
+
         target.quantity = quantity;
         cart.updated_at = new Date().toISOString();
         return ecommerceDb.insert(cart);
@@ -390,7 +392,7 @@ class Database {
     async reduceStock(cartItems) {
         try {
             const updates = [];
-    
+
             for (const cartItem of cartItems) {
                 const item = await ecommerceDb.get(cartItem.ItemID);
                 if (item.Stock >= cartItem.Quantity) {
@@ -401,7 +403,7 @@ class Database {
                     throw new Error(`Insufficient stock for ${item.Name}`);
                 }
             }
-    
+
             return ecommerceDb.bulk({ docs: updates });
         } catch (err) {
             console.error('Error reducing stock:', err);
@@ -416,9 +418,9 @@ class Database {
                 UserName: username
             }
         });
-    
+
         const mergedItems = [];
-    
+
         for (const item of result.docs) {
             const images = await ecommerceDb.find({
                 selector: {
@@ -426,25 +428,25 @@ class Database {
                     productId: item._id
                 }
             });
-    
+
             mergedItems.push({
                 ...item,
                 ImageURLs: images.docs.map(img => img.ImageURL)
             });
         }
-    
+
         return mergedItems;
     }
-    
+
     async getItemsStock() {
         const result = await ecommerceDb.find({
             selector: {
                 type: 'item'
             }
         });
-    
+
         const allItems = [];
-    
+
         for (const item of result.docs) {
             const images = await ecommerceDb.find({
                 selector: {
@@ -452,13 +454,13 @@ class Database {
                     productId: item._id
                 }
             });
-    
+
             allItems.push({
                 ...item,
                 ImageURLs: images.docs.length > 0 ? images.docs.map(i => i.ImageURL) : ['path/to/default-image.jpg']
             });
         }
-    
+
         return allItems;
     }
 
@@ -466,9 +468,9 @@ class Database {
         const order = await ecommerceDb.get(orderID).catch(() => {
             throw new Error('Order not found');
         });
-    
+
         const details = [];
-    
+
         for (const item of order.items) {
             const product = await ecommerceDb.get(item.itemId);
             details.push({
@@ -479,7 +481,7 @@ class Database {
                 Type: product.Type
             });
         }
-    
+
         return details;
     }
 
@@ -487,7 +489,7 @@ class Database {
         const item = await ecommerceDb.get(itemId).catch(() => {
             throw new Error('Item not found');
         });
-    
+
         const result = await ecommerceDb.find({
             selector: {
                 type: 'user',
@@ -495,9 +497,9 @@ class Database {
             },
             limit: 1
         });
-    
+
         if (result.docs.length === 0) throw new Error('User not found');
-    
+
         const user = result.docs[0];
         return {
             fname: user.fname,
@@ -508,7 +510,7 @@ class Database {
         };
     }
 
-    
+
 }
 
 module.exports = Database;

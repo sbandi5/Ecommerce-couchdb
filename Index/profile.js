@@ -16,6 +16,7 @@ async function fetchUserDetails() {
     const loadingMessage = document.querySelector(".loading");
     const form = document.getElementById("userDetails");
     try {
+        
         const response = await fetch(API.user, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -27,7 +28,8 @@ async function fetchUserDetails() {
         }
 
         const data = await response.json();
-        originalUserDetails = data.userDetails[0]; // Assuming userDetails is an array
+        // getting the user details
+        originalUserDetails = data.userDetails; 
         console.log("Fetched user details:", originalUserDetails);
 
         // Populate fields dynamically
@@ -36,7 +38,10 @@ async function fetchUserDetails() {
             if (displayField) {
                 displayField.textContent = originalUserDetails[key];
             }
+            
         });
+        const emaildisplayField = document.getElementById(`emailDisplay`);
+        emaildisplayField.textContent = originalUserDetails["_id"];
 
         loadingMessage.style.display = "none";
         form.style.display = "block";
@@ -87,6 +92,7 @@ async function saveUserDetails() {
 
     // Merge original data with updated data
     const finalDetails = { ...originalUserDetails, ...updatedDetails };
+    console.log("Merged user details:", finalDetails);
 
     // Get password fields
     const newPassword = document.getElementById("newPassword").value;
