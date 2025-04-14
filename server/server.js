@@ -68,7 +68,7 @@ const carrierGateways = [
 
 const sessionStore = new CouchDBStore({
   name: 'express-sessions', // CouchDB database name
-  host: "3.21.248.95",
+  host: "www.saimanikiranbandi.com",
   port: 5984,
   username: process.env.Db_user, 
   password: process.env.Db_password, 
