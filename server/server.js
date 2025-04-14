@@ -11,6 +11,7 @@ const session = require('express-session');
 const CouchDBStore = require('connect-couchdb')(session);
 const User = require('./user'); // Database user model
 const Database = require('./Database'); // Database connection module
+const MysqlDatabase = require('./MysqlDatabase'); // MySQL database connection module
 const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
 const stripe = require('stripe')('sk_test_51RDXoyIh38caaVaw7RtgAcfvc8N5AJlhsqGdE2awqu4QXFHG31w0A1HdbpK4yr7W6uH6ou2ymUBLx7JkiFe6vhri00FicCh60k');
@@ -44,6 +45,8 @@ const certs = {
    cert : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com.crt'))
 }
 const db = Database.getInstance(); // Your custom Database module
+const mysqlDb = MysqlDatabase.getInstance(); // Your custom MySQL module
+db.connect(); // Connect to the database
 const app = express();
 const server = https.createServer(certs,  app);
 const io = new Server(server,{
@@ -312,6 +315,9 @@ app.post('/api/send-verification', async (req, res) => {
     });
   }
 });
+
+
+
 //verifying otp route
 app.post('/api/verify-otp', (req, res) => {
   console.log('Session ID during OTP verification:', req.sessionID);
@@ -409,6 +415,79 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+//-----------------------------------------------------------------------------------------------------------
+// Route: Mysql User Signup
+app.post('/api/Mysql-signup', async (req, res) => {
+  try {
+    console.log('----------------------------------------');
+    console.log(req.body)
+    console.log('----------------------------------------');
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    console.log('I,m in the signup route');
+    // Create a new User object
+    const user = new User(
+      req.body.fname,
+      req.body.lname,
+      req.body.email,
+      req.body.username,
+      hashedPassword,
+      req.body.aptAddress,
+      req.body.street,
+      req.body.city,
+      req.body.state,
+      req.body.areaCode,
+      req.body.phone
+    );
+    console.log('User in the signup:', user);
+
+    try {
+      const result = await mysqlDb.updateNewUser(user); // Insert user into the database
+      console.log('User added to database:', result);
+      res.json({ success: true, message: 'User registered successfully' });
+    } catch (err) {
+      console.error('Error adding user to database:', err);
+    }
+  } catch (err) {
+    console.error('Error during signup:', err);
+    res.status(500).json({ success: false, error: 'An error occurred during signup' });
+  }
+});
+
+// Route: Mysql User Login
+app.post('/api/Mysql-login', async (req, res) => {
+  try {
+    console.log('The body of request:', req.body);
+    const results = await mysqlDb.getuserDetails(req.body.email);
+    console.log('The results are:', results, ' and i am after the database query');
+
+    if (!results || results.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const user = results;
+    
+    // Compare the password
+    const isMatch = await bcrypt.compare(req.body.password, user.password);
+    if (isMatch) {
+      // Store minimal user details in session
+      req.session.user = {
+        id: user.id,
+        role: user.role,
+        username: user.username,
+      };
+
+      // Generate JWT token
+      const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || 'secret_key', { expiresIn: '1h' });
+
+      return res.json({ success: true, token });
+    } else {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ success: false, error: 'An error occurred during login' });
+  }
+});
 //-----------------------------------------------------------------------------------------------------------
 
 // Route: Check Session

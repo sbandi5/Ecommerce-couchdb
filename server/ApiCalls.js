@@ -24,6 +24,8 @@ export default class APIS{
         this.sendmessage = this.#url + '/api/send-Message';
         this.orderedItems = this.#url + '/api/ordered-items';
         this.userDetails = this.#url + "/api/user-details";
+        this.Mysqllogin = this.#url + "/api/Mysql-login";
+        this.Mysqlsignup = this.#url + "/api/Mysql-signup";
     }
     getUrl(){
         return this.#url;
