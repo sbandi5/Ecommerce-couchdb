@@ -39,13 +39,13 @@ const upload = multer({ storage });
 require('dotenv').config();
 // Initialize app and database
 
-// const certs = {
-//    key : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com_key.txt')),
-//    cert : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com.crt'))
-// }
+const certs = {
+   key : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com_key.txt')),
+   cert : fs.readFileSync(path.join('/etc/ssl/', 'www.saimanikiranbandi.com.crt'))
+}
 const db = Database.getInstance(); // Your custom Database module
 const app = express();
-const server = http.createServer( app);
+const server = http.createServers(certs,  app);
 const io = new Server(server,{
   cors: {
     origin: ["https://www.saimanikiranbandi.com","http://localhost:5579", "http://127.0.0.1:5579"], // Add allowed origins
@@ -100,7 +100,7 @@ app.use(session({
   saveUninitialized: false,
   store: sessionStore,
   cookie: {
-    secure: false,         // true if using HTTPS
+    secure: true,         // true if using HTTPS
     httpOnly: true,
     maxAge: 60 * 60 * 1000 // 1 hour
   }
@@ -732,10 +732,10 @@ app.post('/payment', async (req, res) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            //success_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
-            //cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/cart.html',
-	          success_url : 'http://localhost:5579/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'http://localhost:5579/Index/cart.html',
+            success_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/cart.html',
+	          // success_url : 'http://localhost:5579/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            // cancel_url: 'http://localhost:5579/Index/cart.html',
         });
 
         res.json({ sessionId: session.id });

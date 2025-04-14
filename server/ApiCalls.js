@@ -1,6 +1,6 @@
 export default class APIS{
-    #url = 'http://localhost:12346';
-    //#url = 'https://www.saimanikiranbandi.com:12346';
+    //#url = 'http://localhost:12346';
+    #url = 'https://www.saimanikiranbandi.com:12346';
     constructor() {
 
         this.verification = this.#url + '/api/send-verification';
