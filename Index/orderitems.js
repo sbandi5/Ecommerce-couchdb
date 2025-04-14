@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const data = await response.json();
         const { orderedItems } = data;
+        console.log('Ordered Items:', orderedItems);
 
         if (orderedItems.length === 0) {
             ordersContainer.innerHTML = '<p>You have not placed any orders yet.</p>';
@@ -29,34 +30,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         ordersContainer.innerHTML = '';
         let currentOrderID = null;
         orderedItems.forEach((order) => {
-            if (order.OrderID !== currentOrderID) {
-                currentOrderID = order.OrderID;
+            if (order.orderId !== currentOrderID) {
+                currentOrderID = order.orderId;
 
                 const orderCard = document.createElement('div');
                 orderCard.className = 'order-card';
 
                 orderCard.innerHTML = `
                     <div class="order-header">
-                        <h3>Order ID: ${order.OrderID}</h3>
-                        <p>${new Date(order.OrderDate).toLocaleDateString()}</p>
+                        <h3>Order ID: ${order.orderId}</h3>
+                        <p>${new Date(order.created_at).toLocaleDateString()}</p>
                     </div>
-                    <ul class="order-items" id="order-items-${order.OrderID}"></ul>
-                    <p class="total-amount">Total: $${order.TotalAmount}</p>
+                    <ul class="order-items" id="order-items-${order.orderId}"></ul>
+                    <p class="total-amount">Total: $${order.totalAmount}</p>
                 `;
 
                 ordersContainer.appendChild(orderCard);
             }
 
-            const orderItemsContainer = document.getElementById(`order-items-${order.OrderID}`);
+            const orderItemsContainer = document.getElementById(`order-items-${order.orderId}`);
             const orderItem = document.createElement('li');
+            const items = order.items[0]; // Access first item in the array
 
-            const imageUrl = order.ImageURLs ? order.ImageURLs.split(',')[0] : 'default-image-path.jpg';
+            const imageUrl = items.imageURLs ? items.imageURLs[0] : 'default-image-path.jpg';
             console.log(imageUrl);
             orderItem.innerHTML = `
-                <img src="${'../'+imageUrl}" alt="${order.Name}">
+                <img src="${'../'+imageUrl}" alt="${items.name}" style="width: 100px; height: 100px; object-fit: cover;">
                 <div>
-                    <p>${order.Name}</p>
-                    <p>${order.Quantity} x $${order.Price}</p>
+                    <p>${items.name}</p>
+                    <p>${items.quantity} x $${items.price}</p>
                 </div>
             `;
 

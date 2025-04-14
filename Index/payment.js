@@ -1,4 +1,4 @@
-const stripe = Stripe('5Kjv0FeJleVhmcBlvHyrv58ND0ysVXae0NEdN5xXrLut9DlSUSJtZrQV730Z7rWLMdBNsf7eVwmiXaltw006h4Vyev4'); // Replace with your Stripe public key
+const stripe = Stripe('pk_test_51RDXoyIh38caaVawG2iWv51O3BZgRTbiSc7GrYORKyBNmqWuACvRs2jF4aTTsqFTQFwGP8tDHoWudkBghHn5bzwO00EmYz41OK'); // Replace with your Stripe public key
 
 const createCheckoutSession = () => {
   return fetch('/create-checkout-session', {

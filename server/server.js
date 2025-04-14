@@ -13,7 +13,7 @@ const User = require('./user'); // Database user model
 const Database = require('./Database'); // Database connection module
 const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
-const stripe = require('stripe')('sk_test_51QSMF0D5Kjv0FeJloLFPSpWeLKTzDbTsMYfizW66tHOhAMPYIc7ri2HQBgsQBTL0Izj2QprTo4I6dFL710rOboBV00frBjAmzM');
+const stripe = require('stripe')('sk_test_51RDXoyIh38caaVaw7RtgAcfvc8N5AJlhsqGdE2awqu4QXFHG31w0A1HdbpK4yr7W6uH6ou2ymUBLx7JkiFe6vhri00FicCh60k');
 
 // -----------------------------------------------------------------------------------------
 //multer setup to handle the photo upload
@@ -553,7 +553,9 @@ app.post('/api/add-items', upload.array('itemPhotos', 10), async (req, res) => {
 
 app.post('/api/add-to-cart', async (req, res) => {
   const user = req.session.user;
+  console.log('The user in the add to cart:', user);
   const item = req.body.item;
+  const userDetails = await req.db.getuserDetailsbyUsername(user.username);
 
   if (!user) {
     return res.status(401).json({ message: 'User not authenticated', error: 'Unauthorized' });
@@ -564,14 +566,15 @@ app.post('/api/add-to-cart', async (req, res) => {
   }
 
   try {
-    const itemExists = await req.db.checkIfItemInCart(user.id, item.ItemID);
+    const itemExists = await req.db.checkIfItemInCart(userDetails._id, item.ItemID);
 
     if (itemExists) {
       return res.status(409).json({ message: 'Item already in cart', error: 'Conflict' });
     }
     const checkQuantity = await req.db.checkQuantity(item.ItemID);
     if(checkQuantity){
-      await req.db.addItemToCart(user.id, item.ItemID);
+      console.log(userDetails._id," , ", item.ItemID);
+      await req.db.addItemToCart(userDetails._id, item.ItemID);
       return res.json({ message: 'Item added to cart successfully', error: null });
     }else{
       return res.status(404).json({ message: 'Item out of stock' });
@@ -584,13 +587,17 @@ app.post('/api/add-to-cart', async (req, res) => {
 //Route: retrive cart items from database
 app.get('/api/cart', async (req, res) => {
   const user = req.session.user;
+  console.log('The user in the cart:', user);
+  userDetails = await req.db.getuserDetailsbyUsername(user.username);
+  console.log('The user details in the cart:', userDetails);
+
 
   if (!user) {
       return res.status(401).json({ message: 'Unauthorized' });
   }
 
   try {
-      const cartItems = await req.db.getCartItems(user.id);
+      const cartItems = await req.db.getCartItems(userDetails._id);
       res.json({ message: 'Cart retrieved successfully', cartItems , user});
   } catch (err) {
       console.error('Error retrieving cart items:', err);
@@ -601,13 +608,14 @@ app.get('/api/cart', async (req, res) => {
 app.delete('/api/remove-from-cart', async (req, res) => {
   const user = req.session.user;
   const { itemId } = req.body;
+  const userDetails = await req.db.getuserDetailsbyUsername(user.username);
 
   if (!user) {
       return res.status(401).json({ message: 'Unauthorized' });
   }
 
   try {
-      await req.db.removeItemFromCart(user.id, itemId);
+      await req.db.removeItemFromCart(userDetails._id, itemId);
       res.json({ message: 'Item removed from cart' });
   } catch (err) {
       console.error('Error removing item from cart:', err);
@@ -618,7 +626,7 @@ app.delete('/api/remove-from-cart', async (req, res) => {
 app.put('/api/update-cart', async (req, res) => {
   const { itemId, quantity } = req.body;
   const user = req.session.user;
-
+  const userDetails = await req.db.getuserDetailsbyUsername(user.username);
   if (!user) {
       return res.status(401).json({ message: 'Unauthorized user' });
   }
@@ -628,10 +636,11 @@ app.put('/api/update-cart', async (req, res) => {
   }
 
   try {
-      console.log('Updating cart:', { userId: user.id, itemId, quantity });
+      console.log('Updating cart:', { userId: userDetails._id, itemId, quantity });
 
       // Check if cart exists
-      const cart = await req.db.getActiveCart(user.id);
+      const cart = await req.db.getActiveCart(userDetails._id);
+      console.log('The cart is:', cart);
       if (!cart) {
           console.error('No active cart found for user:', user.id);
           return res.status(404).json({ message: 'No active cart found' });
@@ -655,8 +664,8 @@ app.put('/api/update-cart', async (req, res) => {
       }
 
       // Update quantity in cart
-      await req.db.updateCartQuantity(cart.CartID, itemId, quantity);
-      console.log('Quantity updated successfully:', { cartId: cart.CartID, itemId, quantity });
+      await req.db.updateCartQuantity(cart._id, itemId, quantity);
+      console.log('Quantity updated successfully:', { cartId: cart._id, itemId, quantity });
       res.json({ message: 'Quantity updated successfully' });
 
   } catch (err) {
@@ -696,7 +705,7 @@ app.put('/items/:id/sell', async (req, res) => {
 app.post('/payment', async (req, res) => {
     try {
         const { cartItems } = req.body;
-
+        console.log("The cart items are: ", cartItems);
         if (!Array.isArray(cartItems) || cartItems.length === 0) {
             return res.status(400).json({ error: "Cart items are required." });
         }
@@ -713,7 +722,7 @@ app.post('/payment', async (req, res) => {
                 tax_behavior: 'exclusive', // Tax is added on top
             },
             quantity: item.Quantity,
-            tax_rates: ['txr_1QUXDhD5Kjv0FeJlmcXeQ42U'], // Ensure this tax rate matches your Stripe settings
+            tax_rates: ['txr_1RDZE2Ih38caaVawsdvO2CVh'], 
         }));
 
         console.log("Line items for Stripe Checkout:", lineItems);
@@ -723,10 +732,10 @@ app.post('/payment', async (req, res) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/cart.html',
-	    //success_url : 'http://localhost:5500/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
-            //cancel_url: 'http://localhost:5500/Index/cart.html',
+            //success_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            //cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/cart.html',
+	          success_url : 'http://localhost:5579/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: 'http://localhost:5579/Index/cart.html',
         });
 
         res.json({ sessionId: session.id });
@@ -739,7 +748,8 @@ app.post('/payment', async (req, res) => {
 
 app.post('/finalize-order', async (req, res) => {
   try {
-      const { sessionId, userId } = req.body;
+      const { sessionId, username } = req.body;
+      const userDetails = await req.db.getuserDetailsbyUsername(username);
 
       // Verify Stripe session
       const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -748,26 +758,41 @@ app.post('/finalize-order', async (req, res) => {
       }
 
       // Fetch cart items
-      const cartItems = await req.db.getCartItems(userId);
+      const cartItems = await req.db.getCartItems(userDetails._id);
       if (!Array.isArray(cartItems) || cartItems.length === 0) {
           return res.status(400).json({ error: 'No items in cart.' });
       }
+      console.log('The cart items are:', cartItems);
+      // const totalAmount = cartItems.reduce((sum, item) => {
+      //     const price = parseFloat(item.Price) || 0;
+      //     const quantity = parseInt(item.Quantity) || 0;
+      //     return sum + (price * quantity);
+      // }, 0);
+      // if (isNaN(totalAmount)) {
+      //     throw new Error('Invalid price or quantity values in cart items');
+      // }
+      // console.log('The total amount is:', totalAmount);
+      let sum = 0;
+      for(let item of cartItems){
+        let price = parseInt(item.price) ;
+        let quantity = parseInt(item.quantity);
+        sum += price * quantity;
+      }
+      const totalAmount = sum ; // Convert to cents for Stripe
 
-      // Calculate total amount
-      const totalAmount = cartItems.reduce((sum, item) => sum + item.Price * item.Quantity, 0);
 
-      // Insert new order with status 'Pending'
-      const orderResult = await req.db.insertOrder(userId, totalAmount);
-      const orderId = orderResult.insertId; // Access the `insertId` property directly
+      // Insert new order with status
+      const orderResult = await req.db.insertOrder(userDetails._id, cartItems,totalAmount);
+      const orderId = orderResult._id;
 
-
+      console.log('The cart items are:', cartItems);
       // Insert order items
       await req.db.insertOrderItems(orderId, cartItems);
 
       // Reduce stock in items table
       await req.db.reduceStock(cartItems);
 
-      await req.db.markCartAsCheckedOut(userId);
+      await req.db.markCartAsCheckedOut(userDetails._id);
       // Broadcast the updated stock to all connected clients
       await stockUpdate.fetchAndBroadcastStock();
       res.json({ success: true, orderId });
@@ -779,13 +804,13 @@ app.post('/finalize-order', async (req, res) => {
 
 app.get('/api/ordered-items', async (req, res) => {
   const user = req.session.user;
-
+  const userDetails = await req.db.getuserDetailsbyUsername(user.username);
   if (!user) {
       return res.status(401).json({ success: false, message: 'Unauthorized user' });
   }
 
   try {
-      const orderedItems = await req.db.getOrderedItemsByUserId(user.id);
+      const orderedItems = await req.db.getOrderedItemsByUserId(userDetails._id);
 
       if (orderedItems.length === 0) {
           return res.json({ success: true, orderedItems: [] }); // No items ordered
@@ -809,11 +834,8 @@ app.get('/api/user-details', async (req, res) => {
 
       const userDetails = await req.db.getuserDetailsbyUsername(user.username);
       console.log('The user details from the database:', userDetails);
-      if (!userDetails.length) {
-          return res.status(404).json({ success: false, message: 'User details not found' });
-      }
 
-      res.json({ success: true, user: userDetails[0] });
+      res.json({ success: true, user: userDetails });
   } catch (error) {
       console.error('Error fetching user details:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch user details' });

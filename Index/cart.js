@@ -21,8 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!cartResponse.ok) throw new Error("Failed to fetch cart items.");
 
         const { cartItems } = await cartResponse.json();
+        console.log(cartItems);
 
-        if (!cartItems.length) {
+        if (cartItems === undefined) {
             cartContainer.innerHTML = '<p>Your cart is empty.</p>';
             return;
         }
@@ -32,29 +33,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             const itemCard = document.createElement("div");
             itemCard.className = "cart-item-card";
 
-            const images = item.ImageURLs.split(',');
-            const imageUrl = item.ImageURLs?.length ? `../${images[0]}` : "default-image-path.jpg";
+            const images = item.imageURLs?.[0] ? item.imageURLs : ["default-image-path.jpg"];
+            const imageUrl = `../${images[0]}`;
+
 
             itemCard.innerHTML = `
-                <img src="${imageUrl}" alt="${item.Name}">
+                <img src="${imageUrl}" alt="${item.name}">
                 <div class="item-info">
-                    <h3>${item.Name}</h3>
-                    <p>${item.Description}</p>
-                    <p><strong>Price:</strong> $${item.Price}</p>
-                    <p><strong>Stock:</strong> ${item.Stock}</p>
+                    <h3>${item.name}</h3>
+                    <p>${item.description}</p>
+                    <p><strong>Price:</strong> $${item.price}</p>
+                    <p><strong>Stock:</strong> ${item.stock}</p>
                     <div class="quantity-controls">
-                        <button class="decrease-quantity" data-item-id="${item.ItemID}">-</button>
-                        <input type="number" value="${item.Quantity}" min="1" max="${Math.min(5, item.Stock)}" data-item-id="${item.ItemID}">
-                        <button class="increase-quantity" data-item-id="${item.ItemID}">+</button>
+                        <button class="decrease-quantity" data-item-id="${item.itemId}">-</button>
+                        <input type="number" value="${item.quantity}" min="1" max="${Math.min(5, item.stock)}" data-item-id="${item.itemId}">
+                        <button class="increase-quantity" data-item-id="${item.itemId}">+</button>
                     </div>
-                    <button class="remove-from-cart" data-item-id="${item.ItemID}">Remove</button>
+                    <button class="remove-from-cart" data-item-id="${item.itemId}">Remove</button>
                 </div>
             `;
 
             // Attach event listeners for quantity controls
-            itemCard.querySelector('.increase-quantity').addEventListener('click', () => updateQuantity(item.ItemID, 1, item.Stock));
-            itemCard.querySelector('.decrease-quantity').addEventListener('click', () => updateQuantity(item.ItemID, -1, item.Stock));
-            itemCard.querySelector('.remove-from-cart').addEventListener('click', () => removeFromCart(item.ItemID));
+            itemCard.querySelector('.increase-quantity').addEventListener('click', () => updateQuantity(item.itemId, 1, item.stock));
+            itemCard.querySelector('.decrease-quantity').addEventListener('click', () => updateQuantity(item.itemId, -1, item.stock));
+            itemCard.querySelector('.remove-from-cart').addEventListener('click', () => removeFromCart(item.itemId));
 
             cartContainer.appendChild(itemCard);
         });
@@ -77,8 +79,9 @@ async function fetchUserDetails() {
         const user = await response.json();
         const userDetails = user.user;
 
+
         // Update the shipping address element
-        document.getElementById("shipping-address").innerText = `${userDetails.aptAddress},\n ${userDetails.street},\n ${userDetails.city},\n ${userDetails.state},\n ${userDetails.areaCode}.`;
+        document.getElementById("shipping-address").innerText = `${userDetails.address.aptAddress},\n ${userDetails.address.street},\n ${userDetails.address.city},\n ${userDetails.address.state},\n ${userDetails.address.areaCode}.`;
 
         return user;
     } catch (error) {
@@ -153,16 +156,15 @@ document.querySelector('.checkout_button').addEventListener('click', async () =>
 
         const { user, cartItems } = await cartResponse.json();
 
-// Store user details in local storage
-if (user) {
-    localStorage.setItem('userDetails', JSON.stringify(user));
-    console.log('User details stored in localStorage:', user);
-} else {
-    console.warn('User details are missing.');
-}
+        // Store user details in local storage
+        if (user) {
+            localStorage.setItem('userDetails', JSON.stringify(user));
+            console.log('User details stored in localStorage:', user);
+        } else {
+            console.warn('User details are missing.');
+        }
 
-
-        if (!user?.id) {
+        if (!user.username) {
             alert("User information is missing. Please log in again.");
             return;
         }
@@ -174,9 +176,9 @@ if (user) {
 
         const cartItemsWithTax = [
             ...cartItems.map(item => ({
-                Name: item.Name,
-                Price: item.Price,
-                Quantity: item.Quantity,
+                Name: item.name,
+                Price: item.price,
+                Quantity: item.quantity,
             })),
         ];
 
@@ -191,7 +193,7 @@ if (user) {
 
         const { sessionId } = await checkoutResponse.json();
 
-        const stripe = Stripe('pk_test_51QSMF0D5Kjv0FeJleVhmcBlvHyrv58ND0ysVXae0NEdN5xXrLut9DlSUSJtZrQV730Z7rWLMdBNsf7eVwmiXaltw006h4Vyev4');
+        const stripe = Stripe('pk_test_51RDXoyIh38caaVawG2iWv51O3BZgRTbiSc7GrYORKyBNmqWuACvRs2jF4aTTsqFTQFwGP8tDHoWudkBghHn5bzwO00EmYz41OK'); 
         const result = await stripe.redirectToCheckout({ sessionId });
 
         if (result.error) {

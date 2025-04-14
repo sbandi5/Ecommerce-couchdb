@@ -94,7 +94,7 @@ class Database {
                 username: username
             },
             fields: [
-                "_id","fname", "lname", "email", "username", "phone",
+                "_id", "fname", "lname", "email", "username", "phone",
                 "address.aptAddress", "address.street", "address.city", "address.state", "address.areaCode"
             ],
             limit: 1
@@ -128,25 +128,25 @@ class Database {
     }
 
     async addItemToCart(userId, itemId) {
-        // 1. Find active cart
+        // 1. Find active cart with exact userId match
         const result = await ecommerceDb.find({
             selector: {
                 type: 'cart',
-                userId: userId,
+                userId: { "$eq": userId },  // Ensure exact match
                 status: 'active'
             },
             limit: 1
         });
-
+        console.log("The User Id:", userId); // Debugging line
         let cart;
         if (result.docs.length > 0) {
             cart = result.docs[0];
         } else {
-            // Create new cart
+            // Create new cart with specific userId
             cart = {
                 _id: uuidv4(),
                 type: 'cart',
-                userId,
+                userId: userId,  // Ensure userId is set correctly
                 status: 'active',
                 items: [],
                 created_at: new Date().toISOString(),
@@ -171,7 +171,19 @@ class Database {
         cart.updated_at = new Date().toISOString();
         return ecommerceDb.insert(cart);
     }
-
+    async getActiveCart(user_Id) {
+        const result = await ecommerceDb.find({
+            selector: {
+                type: 'cart',
+                userId: user_Id,
+                status: 'active'
+            },
+            limit: 1
+        });
+        if (result.docs.length === 0) return null;
+        const cart = result.docs[0];
+        return cart;
+    }
     async getCartItems(userId) {
         const result = await ecommerceDb.find({
             selector: {
@@ -206,7 +218,18 @@ class Database {
 
         return detailedItems;
     }
-
+    async insertOrderItems(orderId, cartItems) {
+        const orderItemDocs = cartItems.map(item => ({
+            _id: uuidv4(),
+            type: 'order_item',
+            OrderID: orderId,
+            ItemID: item.ItemID,
+            Quantity: item.Quantity,
+            Price: item.Price,
+            created_at: new Date().toISOString()
+        }));
+        return ecommerceDb.bulk({ docs: orderItemDocs });
+    }
     async removeItemFromCart(userId, itemId) {
         const result = await ecommerceDb.find({
             selector: {
@@ -227,11 +250,11 @@ class Database {
         return ecommerceDb.insert(cart);
     }
 
-    async markCartAsCheckedOut(userId) {
+    async markCartAsCheckedOut(user_Id) {
         const result = await ecommerceDb.find({
             selector: {
                 type: 'cart',
-                userId,
+                userId: user_Id,
                 status: 'active'
             },
             limit: 1
@@ -257,32 +280,39 @@ class Database {
         return ecommerceDb.bulk({ docs: bulkDocs });
     }
 
-    async insertOrder(userId, cartItems, totalAmount) {
+    async insertOrder(user_Id, cartItems, totalAmount) {
         const orderDoc = {
             _id: uuidv4(),
             type: 'order',
-            userId,
+            userId: user_Id,
             items: cartItems,
             totalAmount,
-            status: 'Pending',
+            status: 'success',
             created_at: new Date().toISOString()
         };
-
-        return ecommerceDb.insert(orderDoc);
+        await ecommerceDb.insert(orderDoc);
+        console.log('Order inserted:', orderDoc);
+        return orderDoc;
     }
 
-    async getOrderedItemsByUserId(userId) {
+    async getOrderedItemsByUserId(user_Id) {
         const result = await ecommerceDb.find({
             selector: {
                 type: 'order',
-                userId
+                userId: user_Id
             },
-            sort: [{ created_at: 'desc' }]
+            //sort: [{ created_at: 'desc' }]
         });
-
+        if (result.docs.length === 0) return [];
+        console.log('Ordered items:', result.docs);
         const detailedOrders = [];
         for (const order of result.docs) {
             const itemsWithDetails = [];
+
+            if (!Array.isArray(order.items)) {
+                console.log('Order has no items array:', order);
+                continue;
+            }
 
             for (const item of order.items) {
                 const product = await ecommerceDb.get(item.itemId);
@@ -370,17 +400,27 @@ class Database {
     }
 
     async updateCartQuantity(cartId, itemId, quantity) {
-        const cart = await ecommerceDb.get(cartId).catch(() => {
-            throw new Error('Cart not found');
+        const result = await ecommerceDb.find({
+            selector: {
+                type: 'cart',
+                _id: cartId,
+                status: 'active'
+            },
+            limit: 1
         });
 
-        const target = cart.items.find(i => i.itemId === itemId);
-        if (!target) {
-            throw new Error('Item not found in cart');
+        if (!result.docs || result.docs.length === 0) {
+            throw new Error('Cart not found');
         }
 
-        target.quantity = quantity;
-        cart.updated_at = new Date().toISOString();
+        const cart = result.docs[0];
+        cart.items = cart.items.map(item => {
+            if (item.itemId === itemId) {
+                return { ...item, quantity };
+            }
+            return item;
+        });
+
         return ecommerceDb.insert(cart);
     }
 
@@ -394,9 +434,9 @@ class Database {
             const updates = [];
 
             for (const cartItem of cartItems) {
-                const item = await ecommerceDb.get(cartItem.ItemID);
-                if (item.Stock >= cartItem.Quantity) {
-                    item.Stock -= cartItem.Quantity;
+                const item = await ecommerceDb.get(cartItem.itemId);
+                if (item.Stock >= cartItem.quantity) {
+                    item.Stock -= cartItem.quantity;
                     item.updated_at = new Date().toISOString();
                     updates.push(item);
                 } else {

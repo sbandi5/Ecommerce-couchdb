@@ -12,13 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
     const user = JSON.parse(localStorage.getItem('userDetails'));
-    const userId = user?.id;
+    const username = user?.username;
 
     console.log('Session ID:', sessionId);
-    console.log('User ID:', userId);
+    console.log('User ID:', username);
 
     // Validate session and user ID
-    if (!sessionId || !userId) {
+    if (!sessionId || !username) {
         alert('Missing session or user information.');
         return;
     }
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ sessionId, userId }),
+            body: JSON.stringify({ sessionId, username }),
         });
 
         const result = await response.json();
