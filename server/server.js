@@ -45,7 +45,7 @@ const certs = {
 }
 const db = Database.getInstance(); // Your custom Database module
 const app = express();
-const server = http.createServers(certs,  app);
+const server = https.createServer(certs,  app);
 const io = new Server(server,{
   cors: {
     origin: ["https://www.saimanikiranbandi.com","http://localhost:5579", "http://127.0.0.1:5579"], // Add allowed origins
