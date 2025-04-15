@@ -344,6 +344,7 @@ app.post('/api/verify-otp', (req, res) => {
 // Signup and Login routes
 // Route: User Signup
 app.post('/api/signup', async (req, res) => {
+  let startTime = performance.now();
   try {
     console.log('----------------------------------------');
     console.log(req.body)
@@ -373,6 +374,9 @@ app.post('/api/signup', async (req, res) => {
     } catch (err) {
       console.error('Error adding user to database:', err);
     }
+  let endTime = performance.now();
+  let totalTime = endTime - startTime;
+  console.log('The total time taken by couchdb signup is: ', totalTime, 'ms');
   } catch (err) {
     console.error('Error during signup:', err);
     res.status(500).json({ success: false, error: 'An error occurred during signup' });
@@ -418,6 +422,7 @@ app.post('/api/login', async (req, res) => {
 //-----------------------------------------------------------------------------------------------------------
 // Route: Mysql User Signup
 app.post('/api/Mysql-signup', async (req, res) => {
+  let startTime = performance.now();
   try {
     console.log('----------------------------------------');
     console.log(req.body)
@@ -447,6 +452,9 @@ app.post('/api/Mysql-signup', async (req, res) => {
     } catch (err) {
       console.error('Error adding user to database:', err);
     }
+    let endTime = performance.now();
+    let totalTime = endTime - startTime;
+    console.log('The total time taken by mysql signup is: ', totalTime, 'ms');
   } catch (err) {
     console.error('Error during signup:', err);
     res.status(500).json({ success: false, error: 'An error occurred during signup' });

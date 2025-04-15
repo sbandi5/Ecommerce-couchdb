@@ -74,6 +74,7 @@ verifyOtpBtn.addEventListener('click', async () => {
       }
 
       // Save user details to the database
+      //const response = await fetch(API.Mysqlsignup, {
       const signupResponse = await fetch(API.signup, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
