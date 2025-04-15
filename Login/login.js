@@ -25,12 +25,16 @@ const form = document.getElementById('login-form');
       const password = document.getElementById('password').value;
 
       try {
+        let startTime = performance.now(); // Start time for performance measurement
+        //const response = await fetch(API.Mysqllogin, {
         const response = await fetch(API.login, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include', // Ensure cookies are included in the request
           body: JSON.stringify({ email, password })
         });
+        let endTime = performance.now(); // End time for performance measurement
+        console.log('Time taken for API call:', endTime - startTime, 'ms'); // Log the time taken
         console.log('response:', response);
         const result = await response.json();
         console.log('Result:', result);
