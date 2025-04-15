@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const user = require('./user');
-
+const dotenv = require('dotenv');
+dotenv.config();
 class MysqlDatabase {
     static #instance = null;
 
@@ -19,10 +20,10 @@ class MysqlDatabase {
     }
     connect() {
         this.databaseDetails = mysql.createConnection({
-            host: process.env.MysqlDb_host,
-            user: process.env.MysqlDb_user,
-            password: process.env.MysqlDb_password,
-            database: process.env.MysqlDb_database,
+            host: process.env.MysqlDB_Host,
+            user: process.env.MysqlDB_user,
+            password: process.env.MysqlDB_password,
+            database: process.env.MysqlDB_database,
         });
 
         this.databaseDetails.connect(err => {
