@@ -5,21 +5,21 @@ class MysqlDatabase {
     static #instance = null;
 
     constructor() {
-        if (Database.#instance) {
+        if (MysqlDatabase.#instance) {
             throw new Error('Use Database.getInstance() instead of new.');
         }
         this.databaseDetails = null; // Initialize without a connection
     }
 
     static getInstance() {
-        if (!Database.#instance) {
-            Database.#instance = new Database();
+        if (!MysqlDatabase.#instance) {
+            MysqlDatabase.#instance = new MysqlDatabase();
         }
-        return Database.#instance;
+        return MysqlDatabase.#instance;
     }
     connect() {
         this.databaseDetails = mysql.createConnection({
-            host: process.env.Db_host,
+            host: process.env.MysqlDb_host,
             user: process.env.MysqlDb_user,
             password: process.env.MysqlDb_password,
             database: process.env.MysqlDb_database,

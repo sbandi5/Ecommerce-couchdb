@@ -46,7 +46,7 @@ const certs = {
 }
 const db = Database.getInstance(); // Your custom Database module
 const mysqlDb = MysqlDatabase.getInstance(); // Your custom MySQL module
-db.connect(); // Connect to the database
+mysqlDb.connect(); // Connect to the database
 const app = express();
 const server = https.createServer(certs,  app);
 const io = new Server(server,{
