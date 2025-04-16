@@ -819,8 +819,8 @@ app.post('/payment', async (req, res) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce/Index/cart.html',
+            success_url: 'https://www.saimanikiranbandi.com/Ecommerce-couchdb/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: 'https://www.saimanikiranbandi.com/Ecommerce-couchdb/Index/cart.html',
 	          // success_url : 'http://localhost:5579/Index/success.html?session_id={CHECKOUT_SESSION_ID}',
             // cancel_url: 'http://localhost:5579/Index/cart.html',
         });
